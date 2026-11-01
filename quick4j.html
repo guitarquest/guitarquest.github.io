@@ -1,0 +1,1037 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>[ Quick Research 4.4.3J ]</TITLE>
+<SCRIPT Language="JavaScript">
+<!--
+/*
+  Quick Research All rights reserved. Yuichi Hirokawa.
+  function init(追加記号,分岐記号,削除記号)
+     記号がない場合は''とおく。ここで使用可能条件を判別。
+     動作モード：1の時はmeta1とmeta2を同値にするため'+'にする。
+
+  function research(notice,動作モード,サイト名,URL,文字列,追加文字列,分岐文字列,削除文字列)
+     動作モード0：演算式,動作モード1：条件式
+     使い方：init();research(notice);
+*/
+
+function navi(){
+  nstr   = "あ";
+  nascii = document.isearch.iascii.checked;
+
+  if(nstr.length == 1){
+       if(navigator.appName == "Netscape"){
+            document.isearch.ikey1.focus();
+       }
+       else{
+           if(nascii == true){
+             document.isearch.iascii.click();
+             document.isearch.ikey1.focus();
+           }
+           else{
+             document.isearch.ikey1.focus();
+           }
+       }
+  }
+  else{
+       document.isearch.ikey1.focus();
+  }
+}
+
+function init(and,or,not){
+ //[だいじ]ここではkey1-3,meta1-2,noticeを定義するだけ
+ //データ格納、初期化
+ code   = "";
+ option = "";
+ key1   = "";
+ key2   = "";
+ key3   = "";
+ num1   = document.isearch.inum1.selectedIndex;
+ num2   = document.isearch.inum2.selectedIndex;
+ ascii  = document.isearch.iascii.checked;
+
+ //演算子定義
+ meta(num1,and,or,not);
+ code1 = code;
+ meta1 = option;
+ meta(num2,and,or,not);
+ code2 = code;
+ meta2 = option;
+
+ //演算子確認
+ search(and,or,not);
+
+ //条件分岐
+ if(num1 == 0){
+     if(num2 == 0){
+            if(ascii == true){
+                   key1   = document.isearch.ikey1.value;
+                   key1   = escape(key1);
+            }
+            else{
+                   key1   = document.isearch.ikey1.value;
+            }
+     }
+     else{
+            if(ascii == true){
+                   key1   = document.isearch.ikey1.value;
+                   key3   = document.isearch.ikey3.value;
+                   key1   = escape(key1);
+                   key3   = escape(key3);
+            }
+            else{
+                   key1   = document.isearch.ikey1.value;
+                   key3   = document.isearch.ikey3.value;
+            }
+     }
+ }
+ else{
+     if(num2 == 0){
+            if(ascii == true){
+                   key1   = document.isearch.ikey1.value;
+                   key2   = document.isearch.ikey2.value;
+                   key1   = escape(key1);
+                   key2   = escape(key2);
+            }
+            else{
+                   key1   = document.isearch.ikey1.value;
+                   key2   = document.isearch.ikey2.value;
+            }
+     }
+     else{
+          if(num1 >= 4){
+              if(num2 >= 4){
+                   if(ascii == true){
+                        key1   = document.isearch.ikey1.value;
+                        key2   = document.isearch.ikey2.value;
+                        key3   = document.isearch.ikey3.value;
+                        key1   = escape(key1);
+                        key2   = escape(key2);
+                        key3   = escape(key3);
+                   }
+                   else{
+                        key1   = document.isearch.ikey1.value;
+                        key2   = document.isearch.ikey2.value;
+                        key3   = document.isearch.ikey3.value;
+                   }
+              }
+              else{
+                  if(ascii == true){
+                       key1   = document.isearch.ikey1.value;
+                       key2   = "("+document.isearch.ikey2.value;
+                       key3   = document.isearch.ikey3.value+")";
+                       key1   = escape(key1);
+                       key2   = escape(key2);
+                       key3   = escape(key3);
+                  }
+                  else{
+                       key1   = document.isearch.ikey1.value;
+                       key2   = "("+document.isearch.ikey2.value;
+                       key3   = document.isearch.ikey3.value+")";
+                  }
+              }
+          }
+          else{
+               if(num2 >= 4){
+                   if(ascii == true){
+                        key1   = "("+document.isearch.ikey1.value;
+                        key2   = document.isearch.ikey2.value+")";
+                        key3   = document.isearch.ikey3.value;
+                        key1   = escape(key1);
+                        key2   = escape(key2);
+                        key3   = escape(key3);
+                   }
+                   else{
+                        key1   = "("+document.isearch.ikey1.value;
+                        key2   = document.isearch.ikey2.value+")";
+                        key3   = document.isearch.ikey3.value;
+                   }
+               }
+               else{
+                    if(ascii == true){
+                         key1   = document.isearch.ikey1.value;
+                         key2   = document.isearch.ikey2.value;
+                         key3   = document.isearch.ikey3.value;
+                         key1   = escape(key1);
+                         key2   = escape(key2);
+                         key3   = escape(key3);
+                    }
+                    else{
+                         key1   = document.isearch.ikey1.value;
+                         key2   = document.isearch.ikey2.value;
+                         key3   = document.isearch.ikey3.value;
+                    }
+               }
+          }
+     }
+ }
+
+ //変数を返す
+ return key1,key2,key3,meta1,meta2,notice;
+
+ //AltaVista,CSJ Index,Odin対策
+ return num1,num2;
+}
+
+function research(notice,mode,site,url,str,andstr,orstr,notstr){
+ //引き数がややこしくなるのでもう一度定義し直す。
+ //meta1-2,key1-3はstr,andstr,orstr,notstrの何処れかに含む。
+ //データ格納
+ num1   = document.isearch.inum1.selectedIndex;
+ num2   = document.isearch.inum2.selectedIndex;
+ link   = document.isearch.ilink.selectedIndex;
+
+ //Anonymizer!
+ prxy   = document.isearch.iprxy.checked;
+ if(prxy == true){
+     url    = "http://anon.free.anonymizer.com:80/"+url;
+     str    = "http://anon.free.anonymizer.com:80/"+str;
+     andstr = "http://anon.free.anonymizer.com:80/"+andstr;
+     orstr  = "http://anon.free.anonymizer.com:80/"+orstr;
+     notstr = "http://anon.free.anonymizer.com:80/"+notstr;
+ }
+ else{
+ }
+
+ //条件分岐
+ if(link == 1){
+     //サイトにリンクする
+     window.open(url,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+ }
+ else{
+        if(key1 == ""){
+               //キーワード未入力
+              //サイトにリンクする
+              window.open(url,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+              
+        }
+        else{
+               if(num1 == 0){
+                        if(num2 == 0){
+                                //条件追加なし,キーワード1個
+                                window.open(str,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+                        }
+                        else{
+                               //2番目の条件追加、キーワード2個
+                               //演算子確認
+                               if(meta2 == ""){
+                                        rstr = site+" は条件"+notice+"が扱えません。"+notice+"以外の条件を選択して下さい。";
+                                        rcnt=0; rmsg();
+                                }
+                                else{
+                                       //モードによる分岐
+                                       if(mode == 0){
+                                                window.open(str,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+                                       }
+                                       else{
+                                              string(site,key1,key2,key3,num1,num2,andstr,orstr,notstr);
+                                       }
+                                }
+                        }
+                }
+                else{
+                       if(num2 == 0){
+                               //1番目の条件追加,キーワード2個
+                               //演算子確認
+                               if(meta1 == ""){
+                                        rstr = site+" は条件"+notice+"が扱えません。"+notice+"以外の条件を選択して下さい。";
+                                        rcnt=0; rmsg();
+                               }
+                               else{
+                                      //モードによる分岐
+                                      if(mode == 0){
+                                             window.open(str,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+                                      }
+                                      else{
+                                             string(site,key1,key2,key3,num1,num2,andstr,orstr,notstr);
+                                      }
+                               }
+                        }
+                        else{
+                               //1,2番目の条件追加,キワード3個
+                               //演算子確認
+                               if(meta1 == ""){
+                                       rstr = site+" は条件"+notice+"が扱えません。"+notice+"以外の条件を選択して下さい。";
+                                       rcnt=0; rmsg();
+                               }
+                               else{
+                                      //演算子確認
+                                      if(meta2 == ""){
+                                                rstr = site+" は条件"+notice+"が扱えません。"+notice+"以外の条件を選択して下さい。";
+                                                rcnt=0; rmsg();
+                                      }
+                                      else{
+                                             //モードによる分岐
+                                             if(mode == 0){
+                                                      window.open(str,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+                                             }
+                                             else{
+                                                    string(site,key1,key2,key3,num1,num2,andstr,orstr,notstr);
+                                             }
+                                      }
+                               }
+                        }
+                }
+        }
+  }
+}
+
+function meta(num,and,or,not){
+ //選択された「条件追加」の番号を検索条件に置き換える。
+ //codeにAND,OR,NOT以外の文字を使用する場合はstring();も変更する。
+ if(num == 0){
+     code == "";
+     option = "";
+     return code,option;
+ }
+ else{
+     if(num == 1){
+         code   = "AND";
+         option = and;
+         return code,option;
+     }
+     else{
+         if(num == 2){
+             code   = "OR";
+             option = or;
+             return code,option;
+         }
+         else{
+              if(num == 3){
+                  code   = "NOT";
+                  option = not;
+                  return code,option;
+              }
+              else{
+                   if(num == 4){
+                        code   = "AND";
+                        option = and;
+                        return code,option;
+                   }
+                   else{
+                        if(num == 5){
+                             code   = "OR";
+                             option = or;
+                             return code,option;
+                        }
+                        else{
+                             code   = "NOT";
+                             option = not;
+                             return code,option;
+                        }
+                   }
+              }
+         }
+     }
+ }
+}
+
+function search(and,or,not){
+ //サイトが扱えない条件を検索。
+ //2^3=8通り。
+
+ if(and == ""){
+     if(or == ""){  
+         if(not == ""){
+             notice = "AND,OR,NOT";
+             return notice;
+         }
+         else{
+             notice = "AND,OR";
+             return notice;
+         }
+     }
+     else{ 
+         if(not == ""){
+             notice = "AND,NOT";
+             return notice;
+         }
+         else{ 
+             notice = "AND";
+             return notice;
+         }
+     }
+ }
+ else{
+     if(or == ""){  
+         if(not == ""){
+             notice = "OR,NOT";
+             return notice;
+         }
+         else{ 
+             notice = "OR";
+             return notice;
+         }
+     }
+     else{ 
+         if(not == ""){
+             notice = "NOT";
+             return notice;
+         }
+         else{ 
+             notice = "-----";
+             return notice;
+         }
+     }
+ }
+}          
+
+//動作モード：1の場合
+function string(site,key1,key2,key3,num1,num2,andstr,orstr,notstr){
+ //データ格納、初期化
+ code   = "";
+ option = "";
+ meta(num1,"","","");
+ code1 = code;
+ meta(num2,"","","");
+ code2 = code;
+
+ //動作モード1の時、条件を2種類指定した時の警告。
+ if(num1 == 0){
+    if(num2 == 0){
+        //条件追加無し,キーワード1個。research()で判別されているのでこの条件は存在しない。
+        //window.open(str,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+    }
+    else{
+        //2番目の条件追加。
+        string2(code2,andstr,orstr,notstr);
+    }
+ }
+ else{
+     if(num2 == 0){
+         //1番目の条件追加。
+         string2(code1,andstr,orstr,notstr);
+     }
+     else{
+         if(num1 != num2){
+             rsstr = site+" は条件を一種類しか指定出来ません。条件を統一、または削除して下さい。";
+             rscnt=0; rsmsg();
+         }
+         else{
+             string2(code1,andstr,orstr,notstr);
+         }
+     }
+ }
+}
+
+function string2(code,andstr,orstr,notstr){
+ if(code == "AND"){
+      window.open(andstr,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+ }
+ else{
+     if(code == "OR"){
+          window.open(orstr,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+     }
+     else{
+         if(code == "NOT"){
+              window.open(notstr,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+         }
+         else{
+         }
+     }
+ }
+}
+
+function query(){
+ //データ格納、初期化
+ code  = "";
+ key1  = "";
+ key2  = "";
+ key3  = "";
+ num1  = document.isearch.inum1.selectedIndex;
+ num2  = document.isearch.inum2.selectedIndex;
+ link  = document.isearch.ilink.selectedIndex;
+
+ //条件分岐
+ if(num1 == 0){
+     if(num2 == 0){
+          key1   = document.isearch.ikey1.value;
+     }
+     else{
+          key1   = document.isearch.ikey1.value;
+          key3   = document.isearch.ikey3.value;
+     }
+ }
+ else{
+     if(num2 == 0){
+          key1   = document.isearch.ikey1.value;
+          key2   = document.isearch.ikey2.value;
+     }
+     else{
+          if(num1 >= 4){
+              if(num2 >= 4){
+                   key1   = document.isearch.ikey1.value;
+                   key2   = document.isearch.ikey2.value;
+                   key3   = document.isearch.ikey3.value;
+              }
+              else{
+                   key1   = document.isearch.ikey1.value;
+                   key2   = "("+document.isearch.ikey2.value;
+                   key3   = document.isearch.ikey3.value+")";
+              }
+          }
+          else{
+               if(num2 >= 4){
+                    key1   = "("+document.isearch.ikey1.value;
+                    key2   = document.isearch.ikey2.value+")";
+                    key3   = document.isearch.ikey3.value;
+               }
+               else{
+                    key1   = document.isearch.ikey1.value;
+                    key2   = document.isearch.ikey2.value;
+                    key3   = document.isearch.ikey3.value;
+               }
+          }
+     }
+ }
+
+
+
+ //演算子定義
+ meta(num1);
+ code1 = code;
+ meta(num2);
+ code2 = code;
+
+ //条件分岐
+ if(link == 1){
+    qstr = "サイトのトップページにリンクします。";
+    qcnt=0;qmsg();
+ }
+ else{
+        if(key1 == ""){
+              qstr = "キーワードは入力されていません。サイトのトップページにリンクします。";
+              qcnt=0; qmsg();
+        }
+        else{
+               if(num1 == 0){
+                     if(num2 == 0){
+                           qstr = "検索文字列は "+key1+" です。";
+                           qcnt=0; qmsg();
+                     }
+                     else{
+                            qstr = "検索文字列は "+key1+" "+code2+" "+key3+" です。";
+                            qcnt=0; qmsg();
+                     }
+               }
+               else{
+                     if(num2 == 0){
+                            qstr = "検索文字列は "+key1+" "+code1+" "+key2+" です。";
+                            qcnt=0; qmsg();
+                     }
+                     else{
+                            qstr = "検索文字列は "+key1+" "+code1+" "+key2+" "+code2+" "+key3+" です。";
+                            qcnt=0; qmsg();
+                     }
+               }
+        }
+  }
+}
+
+function plus(num1,num2,notice,mode,site,url,str,str2){
+ //追加演算子を変更
+ if(num1 == 0){
+     if(num2 == 0){
+         //条件追加:無し
+         research(notice,mode,site,url,str);
+     }
+     else{
+         if(num1 == 2){
+             //2番目の条件:OR
+             research(notice,mode,site,url,str);
+         }
+         else{
+             //2番目の条件:AND,NOT
+             research(notice,mode,site,url,str2);
+         }
+     }
+ }
+ else{
+     if(num1 == 2){
+         //1番目の条件:OR
+         research(notice,mode,site,url,str);
+     }
+     else{
+         //1番目の条件:AND,NOT
+         research(notice,mode,site,url,str2);
+     }
+ }
+}
+
+
+function csj(num1,num2){
+ //CSJ対策。
+ if(num1 == 0){
+     if(num2 == 0){
+         research(notice,0,'CSJ Index','http://www.inetg.com/','http://csj3.csj.co.jp/Search2/lookup-main.cgi?key='+key1+meta1+key2+meta2+key3+'&max=30&off=0&cond=and&meta=1');
+     }
+     else{
+         research(notice,0,'CSJ Index','http://www.inetg.com/','http://csj3.csj.co.jp/Search2/lookup-main.cgi?key='+key1+meta1+key2+meta2+key3+'&max=30&off=0&cond=and&meta=1');
+     }
+ }
+ else{
+     if(num2 == 0){
+         research(notice,0,'CSJ Index','http://www.inetg.com/','http://csj3.csj.co.jp/Search2/lookup-main.cgi?key='+key1+meta1+key2+meta2+key3+'&max=30&off=0&cond=and&meta=1');
+     }
+     else{
+         if(num1 != num2){
+             csjstr = 'CSJ Indexは条件を一種類しか指定できません。条件を統一又は削除して下さい。';
+             csjcnt=0; csjmsg();
+         }
+         else{
+             research(notice,0,'CSJ Index','http://www.inetg.com/','http://csj3.csj.co.jp/Search2/lookup-main.cgi?key='+key1+meta1+key2+meta1+key3+'&max=30&off=0&cond=and&meta=1');
+         }
+    }
+ }
+}
+
+function csjmsg(){
+ csjcnt++;
+ time   = 0;
+ status = csjstr;
+ if(csjcnt <= 30){
+     clearTimeout(time);
+     time = setTimeout("csjmsg()",40);
+ }
+ else{
+ }
+}
+
+//URL OPEN
+function url(op){
+  ascii  = document.iurl.iascii.checked;
+  pnum   = document.iurl.ipnum.selectedIndex;
+  host   = document.iurl.ihost.value;
+  hosttrans= host;
+  prxy   = document.isearch.iprxy.checked;
+  trans  = document.iurl.itrans.selectedIndex;
+
+ if(prxy == true){
+     firewall="http://anon.free.anonymizer.com:80/";
+ }
+ else{
+     firewall="";
+ }
+ if(ascii == true){
+      host = escape(host);
+ }
+ else{
+ }
+
+ if(op == "untrans"){
+    if(trans == 0){
+    }
+    else{
+      if(trans == 1){
+        hosttrans=unescape(hosttrans);
+        document.iurl.ihost.value=hosttrans;
+      }
+      else{
+        hosttrans=escape(hosttrans);
+        document.iurl.ihost.value=hosttrans;
+      }
+    }
+ }
+ else{
+   if(pnum == 0){
+        protocol = "";
+   }
+   else{
+      if(pnum == 1){
+          protocol = "http://";
+      }
+      else{
+          if(pnum == 2){
+               protocol = "https://";
+          }
+          else{
+              if(pnum == 3){
+                  protocol = "ftp://";
+              }
+              else{
+                   if(pnum == 4){
+                        protocol = "news://";
+                   }
+                   else{
+                        if(pnum == 5){
+                            protocol = "telnet://";
+                        }
+                        else{
+                            if(pnum == 6){
+                                protocol = "gopher://";
+                            }
+                            else{
+                                if(pnum == 7){
+                                     protocol = "wais://";
+                                }
+                                else{
+                                    if(pnum == 8){
+                                        protocol = "file://";
+                                    }
+                                    else{
+                                        if(pnum == 9){
+                                           protocol = "file:///";
+                                        }
+                                        else{
+                                             protocol = "http://anon.free.anonymizer.com:80/http://";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                   }
+              }
+          }
+      }
+   }
+   if(pnum == 1){
+      window.open(firewall+protocol+host,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+   }
+   else{
+      if(prxy == true){
+         if(pnum == 0){
+           window.open(firewall+protocol+host,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+         }
+         else{
+            alert(protocol+"にanonymizerを適用する事は出来ません。\nanonymizerを解除すれば接続は出来ますが\n保護されません。");
+         }
+      }
+      else{
+           window.open(firewall+protocol+host,"","toolbar=1,location=1,directories=0,status=1,menubar=1,scrollbars=1,resizable=1");
+      }
+   }
+  }
+}
+
+function qmsg(){
+ qcnt++;
+ time   = 0;
+ status = qstr;
+ if(qcnt <= 30){
+     clearTimeout(time);
+     time = setTimeout("qmsg()",40);
+ }
+ else{
+ }
+
+}
+
+function rmsg(){
+ rcnt++;
+ time   = 0;
+ status = rstr;
+ if(rcnt <= 30){
+     clearTimeout(time);
+     time = setTimeout("rmsg()",40);
+ }
+ else{
+ }
+}
+
+function rsmsg(){
+ rscnt++;
+ time   = 0;
+ status = rsstr;
+ if(rscnt <= 30){
+     clearTimeout(time);
+     time = setTimeout("rsmsg()",40);
+ }
+ else{
+ }
+}
+
+// -->
+</SCRIPT>
+<STYLE TYPE="text/css">
+<!--
+A:link    {color=#7799FF ;text-decoration:underline;}
+A:visited {color=#7799FF ;text-decoration:underline;}
+A:hover   {color=#20FF66 ;text-decoration:underline;}
+A:active  {color=#FF88FF ;text-decoration:underline;}
+-->
+</STYLE>
+</HEAD>
+<BODY ONLOAD="navi();" BGCOLOR="#000000" TEXT="#00FF00" LINK="#7799FF" ALINK="#FF88FF" VLINK="#7799FF"><A NAME="0"></A>
+<NOSCRIPT>
+<CENTER><FONT COLOR="#FF0000">エラー：JavaScriptがOFFになっています。JavaScriptをONにしてから再読み込みをして下さい。</FONT></CENTER><HR>
+</NOSCRIPT>
+<CENTER><FONT SIZE="2">キ−ワ−ドを入力してからサイト選択をすると結果が別ウィンドウに表示されます。</FONT></CENTER><BR>
+<CENTER><FONT SIZE="3">Netscape Navigator 3.0以降またはInternet
+Explorer 3.0以降をお使い下さい。</FONT><A HREF="#1"
+STYLE="cursor:help">[ HELP !! ]</A></CENTER><HR>
+<FORM ACTION="javascript:init('+','+','+');research(notice,1,'goo','http://www.goo.ne.jp/','http://www.goo.ne.jp/default.asp?MT='+key1+'&SM=MC&WTS=ntt&_v=2','http://www.goo.ne.jp/default.asp?MT='+key1+meta1+key2+meta2+key3+'&WTS=ntt&DE=2&SM=MC&DC=10&radio798875=radio&AT0=words&AM0=MC&AW0=&_v=2&ES=1&act.search.x=16&act.search.y=7','http://www.goo.ne.jp/default.asp?MT='+key1+meta1+key2+meta2+key3+'&WTS=ntt&DE=2&SM=SC&DC=10&radio798875=radio&AT0=words&AM0=MC&AW0=&_v=2&ES=1&act.search.x=40&act.search.y=9','http://www.goo.ne.jp/default.asp?MT='+key1+'&WTS=ntt&DE=2&SM=MC&DC=10&radio798875=radio&AT0=words&AM0=MN&AW0='+key2+meta2+key3+'&_v=2&ES=1&act.search.x=18&act.search.y=11');" NAME="isearch">
+　キーワード：<INPUT TYPE="text" SIZE="40" NAME="ikey1">
+<SELECT  ONCHANGE="document.isearch.ikey1.focus();" NAME="ilink">
+<OPTION>検索
+<OPTION>リンク
+</SELECT>
+<INPUT TYPE="checkbox" ONCLICK="document.isearch.ikey1.focus();" NAME="iascii" CHECKED>ASCII
+<INPUT TYPE="checkbox" ONCLICK="document.isearch.ikey1.focus();" NAME="iprxy">anonymizer
+<BR>
+　　　　　　　<SELECT ONCHANGE="document.isearch.ikey2.focus();" NAME="inum1">
+<OPTION>↓追加
+<OPTION>AND
+<OPTION>OR
+<OPTION>NOT
+<OPTION>AND (
+<OPTION>OR  (
+<OPTION>NOT (
+</SELECT>
+<INPUT TYPE="text" SIZE="50" NAME="ikey2">
+<INPUT TYPE="button" ONCLICK="query();document.isearch.ikey1.focus();" VALUE="確認" NAME="icheck"><BR>
+　　　　　　　<SELECT ONCHANGE="document.isearch.ikey3.focus();" NAME="inum2">
+<OPTION>↓追加
+<OPTION>AND
+<OPTION>OR
+<OPTION>NOT
+<OPTION>) AND
+<OPTION>) OR
+<OPTION>) NOT
+</SELECT>
+<INPUT TYPE="text" SIZE="50" NAME="ikey3">
+<INPUT TYPE="button" ONCLICK="document.isearch.reset();navi();" VALUE="消去" NAME="iclear">
+</FORM>
+<HR>
+<CENTER>[ 日本語 ]</CENTER>
+<TABLE BORDER="0">
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','+-');research(notice,0,'Biglobe','http://search.biglobe.ne.jp/','http://cgi.search.biglobe.ne.jp/cgi-bin/search?q='+key1+meta1+key2+meta2+key3+'&lr=lang_ja&num=30');" ONMOUSEOVER="status='Googleをベースにしています';">Biglobe</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+and+','+or+','');csj(num1,num2);" ONMOUSEOVER="status='CSJIndex';">CSJ Index</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','OR','+-');research(notice,0,'excite Japan','http://www.excite.co.jp/','http://www.excite.co.jp/search.gw?s='+key1+meta1+key2+meta2+key3+'&c=japan&lk=excite_jp&showSummary=true&perPage=30&target=web');" ONMOUSEOVER="status='キーワードを追加しながら検索出来ます';">Exicite</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+and+','+or+','+~');research(notice,0,'FreshEye','http://fresheye.toshiba.co.jp/','http://search.fresheye.com/?kw='+key1+meta1+key2+meta2+key3+'&term=monthly');" ONMOUSEOVER="status='最新情報の検索や目的サイトに直接リンク出来ます';">FreshEye</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','+','+');research(notice,1,'goo','http://www.goo.ne.jp/','http://www.goo.ne.jp/default.asp?MT='+key1+'&SM=MC&WTS=ntt&DC=25&_v=2','http://www.goo.ne.jp/default.asp?MT='+key1+meta1+key2+meta2+key3+'&WTS=ntt&DE=2&SM=MC&DC=25&radio798875=radio&AT0=words&AM0=MC&AW0=&_v=2&ES=1&act.search.x=16&act.search.y=7','http://www.goo.ne.jp/default.asp?MT='+key1+meta1+key2+meta2+key3+'&WTS=ntt&DE=2&SM=SC&DC=25&radio798875=radio&AT0=words&AM0=MC&AW0=&_v=2&ES=1&act.search.x=40&act.search.y=9','http://www.goo.ne.jp/default.asp?MT='+key1+'&WTS=ntt&DE=2&SM=MC&DC=25&radio798875=radio&AT0=words&AM0=MN&AW0='+key2+meta2+key3+'&_v=2&ES=1&act.search.x=18&act.search.y=11');" ONMOUSEOVER="status='多数の情報が登録されています';">goo</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','');research(notice,0,'Google','http://www.google.com/intl/ja/','http://www.google.com/search?as_q='+key1+meta1+key2+meta2+key3+'&num=30&as_epq=&as_oq=&as_eq=&lr=lang_ja&as_occt=any&as_dt=i&as_sitesearch=');" ONMOUSEOVER="status='Google';">Google</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'InfoNavi','http://infonavi.infoweb.ne.jp/','http://para.cab.infoweb.ne.jp/cgi-bin/para?QueryString='+key1+meta1+key2+meta2+key3+'&Page=page_index&DB=DB&Max=30&Template=%2Fresults_rbt.html');" ONMOUSEOVER="status='InfoNavi';">InfoNavi</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','+','');research(notice,1,'InfoseekJapan','http://japan.infoseek.com/','http://japan.infoseek.com/Titles?col=JW&qt='+key1+'&sv=JP&lk=noframes&nh=25','http://japan.infoseek.com/Titles?col=JW&qt='+key1+meta1+key2+meta2+key3+'&sv=JP&lk=noframes&submit=+seek+&nh=25&tds=0&qp=0','http://japan.infoseek.com/Titles?col=JW&qt='+key1+meta1+key2+meta2+key3+'&sv=JP&lk=noframes&submit=+seek+&nh=25&tds=0&qp=1');" ONMOUSEOVER="status='自然語検索が出来ます';">Infoseek</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','');research(notice,0,'JoyJoy','http://joyjoy.com/JOY.html','http://search.netjoy.ne.jp/cgi-bin/joy/nph-search.cgi?key='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='JoyJoy';">JoyJoy</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('','','');research(notice,0,'JPNIC','http://serv.nic.ad.jp/cgi-bin/whois_gw','http://serv.nic.ad.jp/cgi-bin/whois_gw?key='+key1+'&lang=&type=&rule');" ONMOUSEOVER="status='アドレス等から組織名を検索出来ます。';">JPNIC</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'Lycos','http://www.lycos.co.jp/','http://www.lycos.co.jp/cgi-bin/pursuit?encoding=Shift_JIS&mtemp=main&query='+key1+meta1+key2+meta2+key3+'&npl=matchmode%3Dand%26adv%3D0&cat=jp&results=default&maxhits=30');" ONMOUSEOVER="status='Lycosの日本語版です';">Lycos</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('*','+','#');research(notice,0,'Yahoo! Japan','http://www.yahoo.co.jp/','http://search.yahoo.co.jp/bin/search?p='+key1+meta1+key2+meta2+key3+'&n=30');" ONMOUSEOVER="status='情報が項目別になっています';">Yahoo!</A>
+</TD>
+</TR>
+</TABLE>
+<HR>
+<CENTER>[ English ]</CENTER>
+<TABLE BORDER="0">
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','+-');plus(num1,num2,notice,0,'AltaVista','http://altavista.digital.com/','http://altavista.digital.com/cgi-bin/query?pg=q&kl=XX&q='+key1+meta1+key2+meta2+key3,'http://altavista.digital.com/cgi-bin/query?pg=q&kl=XX&q=+'+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='名前の検索も出来ます';">Altavista</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','+-');research(notice,0,'AOL','http://search.aol.com/','http://netfind.aol.com/search.gw?search='+key1+meta1+key2+meta2+key3+'&lk=excite_netfind2_us&nrm=n&pri=on&xls=b');" ONMOUSEOVER="status='AOLのメンバーページを検索出来ます';">AOL</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','\,','');research(notice,0,'c|net search','http://search.cnet.com/','http://search.cnet.com/Infoseek/1,135,0,0200.html?QUERY='+key1+meta1+key2+meta2+key3+'&COLL=WW');" ONMOUSEOVER="status='強力な検索サイト';">c|net search</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+&+','+|+','+&!+');research(notice,0,'DejaNews','http://www.dejanews.com/','http://www.dejanews.com/dnquery.xp?QRY='+key1+meta1+key2+meta2+key3+'&DBS=2&maxhits=30&format=terse&showsort=score&ST=QS&LNG=ALL');" ONMOUSEOVER="status='ニュースグループの検索が出来ます';">DejaNews</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'excite','http://www.excite.com/','http://search.excite.com/search.gw?search='+key1+meta1+key2+meta2+key3+'&perPage=30');" ONMOUSEOVER="status='キーワードを追加しながら検索出来ます';">excite</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','-','');research(notice,0,'FAST FTP Search','http://ftpsearch.lycos.com/?form=medium','http://ftpsearch.lycos.com/swadv/AdvResults.asp?form=medium&query='+key1+meta1+key2+meta2+key3+'&hits=30');" ONMOUSEOVER="status='FTP検索サイト。お勧め！';">FTP Search</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','-','');research(notice,0,'GeoCities','http://www.geocities.com/','http://www.geocities.com/cgi-bin/search/geosearch?cat=geo&query='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='GeoCitiesのメンバーページが検索出来ます';">GeoCities</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','-','');research(notice,0,'google','http://www.google.com/intl/en/','http://www.google.com/search?q='+key1+meta1+key2+meta2+key3+'&num=30');" ONMOUSEOVER="status='google';">Google</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','+OR+','+-');research(notice,0,'GoTo','http://www.goto.com/','http://www.goto.com/d/search/?Keywords='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='GoTo';">GoTo</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('&','|','!');research(notice,0,'HotBot','http://www.hotbot.com/','http://www.hotbot.com/?MT='+key1+meta1+key2+meta2+key3+'&submit=SEARCH&SM=MC&DV=0&RG=all&RD=RG&DC=25&DE=2');" ONMOUSEOVER="status='HotBot';">HotBot</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','\,','+-');research(notice,0,'Infoseek','http://www.infoseek.com/','http://www.infoseek.com/Titles?qt='+key1+meta1+key2+meta2+key3+'&col=WW&sv=IS&lk=lb');" ONMOUSEOVER="status='InfoSeek';">InfoSeek</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','+-');research(notice,0,'Ixquick','http://www.ixquick.com/','http://ixquick.com/do/metasearch.pl?cat=web&cat=web&cmd=process_search&language=english&query='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='複数の検索エンジンを同時に検索します。';">Ixquick</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','');research(notice,0,'LookSmart','http://www.looksmart.com/','http://www.looksmart.com/r_search?look=&key='+key1+meta1+key2+meta2+key3+'&search=0');" ONMOUSEOVER="status='LookSmart';">LookSmart</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'Lycos','http://www.lycos.com/','http://www.lycos.com/cgi-bin/pursuit?matchmode=and&cat=lycos&query='+key1+meta1+key2+meta2+key3+'&x=25&y=9');" ONMOUSEOVER="status='Lycos';">Lycos</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+AND+NOT+');research(notice,0,'Magellan','http://www.mckinley.com/','http://www.mckinley.com/search.gw?search='+key1+meta1+key2+meta2+key3+'&c=web&look=magellan&perPage=30');" ONMOUSEOVER="status='Magellan';">Magellan</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','+','-');research(notice,0,'MetaCrawler','http://www.go2net.com/search.html','http://search.metacrawler.com/crawler?general='+key1+meta1+key2+meta2+key3+'&redirect=&method=0&region=0&rpp=20&timeout=0&hpe=10&sort=0&power=0&refer=mc-results1');" ONMOUSEOVER="status='複数の検索サイトを同時に検索します。お勧め！';">MetaCrawler</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+AND+NOT+');research(notice,0,'Snap','http://home.snap.com/','http://home.snap.com/search/directory/results/1,61,home-0,00.html?tag=st.sn.fdsb&keyword='+key1+meta1+key2+meta2+key3+'&NR=30');" ONMOUSEOVER="status='snap';">Snap</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+AND+NOT+');research(notice,0,'StartingPoint','http://www.stpt.com/','http://www.stpt.com/cgi-bin/pwrsrch/searchDirect.cgi?query='+key1+meta1+key2+meta2+key3+'&search=web');" ONMOUSEOVER="status='StartingPoint';">StartingPoint</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','');research(notice,0,'UKIndex','http://www.ukindex.co.uk/','http://www.ukindex.co.uk/cgi-bin/ukindex.dll/Find?stext='+key1+meta1+key2+meta2+key3+'&submit1=search');" ONMOUSEOVER="status='イギリスの検索サイトです';">UKIndex</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+AND+NOT+');research(notice,0,'WebCrawler','http://www.webcrawler.com/','http://www.webcrawler.com/cgi-bin/WebQuery?searchText='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='WebCrawler';">WebCrawler</A>
+</TD>
+</TR>
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('','','');research(notice,0,'Whois','http://www.whois.net/','http://www.whois.net/search.cgi2?str='+key1);" ONMOUSEOVER="status='Whois';">Whois</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','+-');research(notice,0,'Yahoo!','http://search.yahoo.com/','http://search.yahoo.com/bin/search?p='+key1+meta1+key2+meta2+key3+'&n=30');" ONMOUSEOVER="status='情報が項目別になっています';">Yahoo!</A>
+</TD>
+</TR>
+</TABLE>
+<HR>
+<CENTER>[ Deutsch ]</CENTER>
+<TABLE BORDER="0">
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'Lycos','http://www.lycos.de/','http://www.lycos.de/cgi-bin/pursuit?query='+key1+meta1+key2+meta2+key3+'&maxhits=30');" ONMOUSEOVER="status='Lycos';">Lycos</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'excite','http://www.excite.de/','http://www.excite.de/search.gw?lang=de&look=excite_de&search='+key1+meta1+key2+meta2+key3+'&c=web.de&perPage=30');" ONMOUSEOVER="status='キーワードを追加しながら検索出来ます';">excite</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','\,','-');research(notice,0,'Infoseek','http://www.infoseek.de/','http://www.infoseek.de/seek/s.cgi?qt='+key1+meta1+key2+meta2+key3+'&sv=IS&col=all&nh=30');" ONMOUSEOVER="status='InfoSeek';">InfoSeek</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','-');research(notice,0,'Yahoo!','http://de.yahoo.com/','http://de.google.yahoo.com/bin/query_de?p='+key1+meta1+key2+meta2+key3+'&hc=0&hs=0');" ONMOUSEOVER="status='情報が項目別になっています';">Yahoo!</A>
+</TD>
+</TR>
+</TABLE>
+<HR>
+<CENTER>[ Francaise ]</CENTER>
+<TABLE BORDER="0">
+<TR>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'Lycos','http://www.lycos.fr/','http://www.lycos.fr/cgi-bin/pursuit?query='+key1+meta1+key2+meta2+key3+'&maxhits=30');" ONMOUSEOVER="status='Lycos';">Lycos</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+AND+','+OR+','+NOT+');research(notice,0,'excite','http://www.excite.fr/','http://www.excite.fr/search.gw?look=excite_fr&lang=fr&search='+key1+meta1+key2+meta2+key3+'&c=web.fr&perPage=32');" ONMOUSEOVER="status='キーワードを追加しながら検索出来ます';">excite</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','\,','-');research(notice,0,'Infoseek','http://france.infoseek.com/','http://www.infoseek.com/Titles?qt='+key1+meta1+key2+meta2+key3+'&oq=site%3Afr&rf=0&col=WW,CAT_RES&sv=FR&cat=RES&CAT=RES&nh=25');" ONMOUSEOVER="status='InfoSeek';">InfoSeek</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','-');research(notice,0,'Yahoo!','http://fr.yahoo.com/','http://fr.google.yahoo.com/bin/query_fr?p='+key1+meta1+key2+meta2+key3+'&n=20');" ONMOUSEOVER="status='情報が項目別になっています';">Yahoo!</A>
+</TD>
+</TR>
+</TABLE>
+<HR>
+<CENTER>[ URLを開く ]</CENTER>
+<BR>
+<CENTER><FONT SIZE="2">通信形式を選択した後、ホスト名を入力し[開く]をクリックすると別ウィンドウに指定したURLが表示されます。</FONT></CENTER>
+<FORM ACTION="javascript:url();" METHOD="post" NAME="iurl">
+<SELECT ONCHANGE="document.iurl.ihost.focus();" NAME="ipnum">
+<OPTION>↓選択
+<OPTION>http://
+<OPTION>https://
+<OPTION>ftp://
+<OPTION>news://
+<OPTION>telnet://
+<OPTION>gopher://
+<OPTION>wais://
+<OPTION>file://
+<OPTION>file:///
+</SELECT>
+<INPUT TYPE="text" SIZE="50" NAME="ihost">
+<INPUT TYPE="button" ONCLICK="url('open');" VALUE="開く" NAME="iopen">
+<INPUT TYPE="reset" ONCLICK="document.forms[1].elements[1].focus();" NAME="iclear" VALUE="消去">
+<SELECT ONCHANGE="url('untrans');" NAME="itrans">
+<OPTION>変換
+<OPTION>→SJIS
+<OPTION>→ASCII
+</SELECT>
+<INPUT TYPE="checkbox" ONCLICK="document.forms[1].elements[1].focus();" NAME="iascii">ASCII
+</FORM>
+<HR><A NAME="1"></A>
+<CENTER>[ 使用方法 ]</CENTER>
+<PRE>
+[検索の仕方]
+　1.キーワードを一番上のフィールドに入れて下さい。
+　　(日本語を入力する場合は漢字変換後リターンキー又はエンターキーを押します。)
+　2.キーワードを追加する場合は[↓条件追加]をクリックしてAND、OR、NOTを選択しキーワードを追加します。
+  3.検索サイトをクリックします。
+
+[検査サイトへのリンク]
+　エキスパート検索等が必要な時は「リンク」を選択してサイトを選択します。
+　また、「検索」を選択していてもキーワードを入力しなければサイトにリンクします。
+
+[ASCII]
+　「ASCII」をオンにすると検索キーワードをASCIIコードに変換します。
+　上手く動作しない場合はオフにして下さい。
+
+[anonymizer]
+　「anonymizer」をオンにすると<A HREF="http://www.anonymizer.com/" TARGET="top">http://www.anonymizer.com/</A>を経由する事で
+　攻撃スクリプトによるクラッシュ等を防ぐ事が出来ます。
+
+[変換]
+　「→SJIS」を選択するとASCIIデコードを行います。
+　「→ASCII」を選択するとASCIIエンコードを行います。
+
+[検索のヒント]
+　□何も該当しない場合：検索語を一般化します。
+　　　　　　　　　　　　（例）行動心理学　→　心理学
+
+　□条件の絞り込み　　：AND, OR, NOTを選択しキーワードを入力します。
+　　　　　　　　　　　　（例）ドライバー [AND] 車 [NOT] 工具
+
+　□必要な情報が見つからない場合　：検索で見つけたリンク集等を使うか又は他の検索語で検索します。
+
+[その他]
+  より詳細な情報は<A HREF="http://fnp90.tripod.com/readmej.html" TARGET="top">取扱い説明書</A>をご覧下さい。
+
+
+<A HREF="#0">[↑ Return to top ]</A>
+</PRE><HR>
+<CENTER><H6>このプログラムはフリーソフトです。動作状況、感想等は下記まで。</H6></CENTER>
+<CENTER><FONT SIZE="2">All rights reserved.  <IMG SRC="email_00ff20.gif"></FONT></CENTER>
+<!--
+<TD WIDTH="120">
+<A HREF="javascript:init('++','','+-');research(notice,0,'Odin','http://odin.ingrid.org/','http://odin.ingrid.org/cgi-bin/odin.cgi?key='+key1+meta1+key2+meta2+key3+'&from=0&n=20');" ONMOUSEOVER="status='Odin';">Odin</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','+','');research(notice,1,'TITAN','http://titan.mcnet.ne.jp/super/','http://titan.mcnet.ne.jp:30000/titan-ad.html?IPSA_ALL='+key1+'&IPSA_MOD=loose&IPSA_SRH=ej&IPSA_MXN=100&IPSA_PAG=japanese','http://titan.mcnet.ne.jp:30000/titan-ad.html?IPSA_ALL='+key1+meta1+key2+meta2+key3+'&IPSA_MOD=strict&IPSA_SRH=ej&IPSA_MXN=100&IPSA_PAG=japanese','http://titan.mcnet.ne.jp:30000/titan-ad.html?IPSA_ALL='+key1+meta1+key2+meta2+key3+'&IPSA_MOD=loose&IPSA_SRH=ej&IPSA_MXN=100&IPSA_PAG=japanese');" ONMOUSEOVER="status='TITAN';">TITAN</A>
+</TD>
+<TD WIDTH="120">
+<A HREF="javascript:init('+','','');research(notice,0,'What\'s new 2','http://nu2.com/','http://nu2.com/perl/query?t='+key1+meta1+key2+meta2+key3);" ONMOUSEOVER="status='What\s new 2';">What's new 2</A>
+</TD>
+-->
+</BODY>
+</HTML>
