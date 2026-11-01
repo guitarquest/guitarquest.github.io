@@ -1,0 +1,187 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Language" content="ja">
+<title> タイムトラベル量推定 </title>
+<script language="JavaScript">
+<!--
+//      _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+//     _/                                    _/
+//    _/      Time Travel Estimate          _/
+//   _/      Copyright(C) Y.H.             _/
+//  _/                                    _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+// Global variables
+var version = 1.34;
+var epsilon = Number.epsilon;
+
+function calc(){
+  // Local variables
+
+  // Integer
+  var ierr;          // Error flag
+
+  // Floating-point
+  var C_LIGHT;       // Speed of light in vacuum               [m/s]
+  var C2_LIGHT;      // Squared speed of light in vacuum       [m^2/s^2] 
+  var distance_km;   // Travel distance                        [km]
+  var elapsed_hour;  // Elapsed hour                           [hour]
+  var elapsed_min;   // Elapsed minute                         [min]
+  // var elapsed_sec;   // Elapsed second                      [sec]
+  var distance;      // Travel distance                        [m]
+  var elapsed;       // Elapsed time                           [s]
+  var florentz2;     // Squared Lorentz factor                 (non-dimensional)
+  var florentz       // Lorentz factor                         (non-dimensional)
+  var abs_florentz;  // Absolute Lorentz factor                (non-dimensional)
+  var diff;          // Delayed time                           [s]
+  var velocity;      // Averaged magnitude of velocity         [m/s]
+  var velocity2;     // Squared Averaged magnitude of velocity [m^2/s^2]
+  var velocity_kmh;  // Averaged magnitude of velocity         [km/h]
+
+  // Constant
+  C_LIGHT  = 2.99792458e8;                     // Speed of light in vacuum          [m/s]
+  C2_LIGHT = Math.pow(C_LIGHT,2.00000000e0);   // Squared speed of light in vacuum  [m^2/s^2]         
+
+  // Error code
+  ierr = 0;
+
+  // Collecting data (Forcing variable type: floating-point)
+  distance_km  = document.f_in.f_distance.value*1.00000000e0;   // Travel distance   [km]
+  elapsed_hour = document.f_in.f_hour.value*1.00000000e0;       // Elapsed hour      [hour]
+  elapsed_min  = document.f_in.f_min.value*1.00000000e0;        // Elapsed minute    [min]
+  //elapsed_sec  = document.f_in.f_sec.value*1.00000000e0;      // Elapsed second    [sec]
+
+  // Exception handling
+  if(document.f_in.f_distance.value == ''){
+    distance_km = 0.00000000e0;
+  }else if(document.f_in.f_distance.value < 0.0e0){
+    distance_km = Math.abs(distance_km);
+  }
+
+  if(document.f_in.f_hour.value == ''){
+    elapsed_hour = 0.00000000e0;
+  }else if(document.f_in.f_hour.value < 0.0e0){
+    elapsed_hour = Math.abs(elapsed_hour);
+  }
+
+  if(document.f_in.f_min.value == ''){
+    elapsed_min = 0.00000000e0;
+  }else if(document.f_in.f_min.value < 0.0e0){
+    elapsed_min = Math.abs(elapsed_min);
+  }
+
+  //if(document.f_in.f_sec.value == ''){
+  //  elapsed_sec = 0.00000000e0;
+  //}else if(document.f_in.f_sec.value < 0.0e0){
+  //  elapsed_sec = Math.abs(elapsed_sec);
+  //}
+
+  // Unit conversion
+  distance =   distance_km*1.00000000e3; // Travel distance [m]
+  elapsed  =   elapsed_hour*3.60000000e3 // Elapsed time    [s]
+             + elapsed_min*6.00000000e1;
+  //           + elapsed_sec*1.00000000e0;
+
+  // Calculate the averaged magnitude of velocity in one dimensional axis
+  velocity     = distance/elapsed;                   // Averaged magnitude of velocity         [m/s] 
+  velocity2    = Math.pow(velocity,2.00000000e0);    // Squared averaged magnitude of velocity [m^2/s^2]
+  velocity_kmh = velocity*3.60000000e0;              // Averaged magnitude of velocity         [km/h]
+  //velocity_kmh = velocity*3.60000000e3/1.00000000e3; // Averaged magnitude of velocity         [km/h]
+
+  if(C_LIGHT*1.0e0 - velocity*1.0e0 < 0.0e0){
+    alert("移動速度が光速を超えています。\n光速を超えて移動することはできません。");
+    // Limit velocity speed to speed of light in vacuum
+    // velocity     = C_LIGHT;
+    // velocity2    = C2_LIGHT;
+    // velocity_kmh = velocity*3.60000000e3/1.00000000e3;
+    ierr         = 1;
+    //exit(1);
+  }
+
+  if( Number.isNaN(velocity_kmh) ){
+    alert("入力は英数半角で入力してください。");
+    ierr = 1;
+  }
+
+  // Lorentz factor
+  florentz2    = 1.00000000e0 - (velocity2/C2_LIGHT);
+  florentz     = Math.sqrt(florentz2);
+  abs_florentz = Math.abs(florentz);
+
+  // Caluculation
+  diff = (1.00000000e0 - abs_florentz)*elapsed; // Delayed time [s]
+  diff = Math.abs(diff);
+
+  // Writing data
+  document.f_out.f_output.value = diff;
+  document.f_out.f_log.value    =  '日時　　　　　　: '+Date()+'\n'
+                                  +'移動距離　　　　: '+distance_km+'[km]'+'\n'
+                                  +'移動時間　　　　: '+elapsed_hour+'時間'+elapsed_min+'分'+'\n'
+                                  +'移動速度の大きさ: '+velocity_kmh+'[km/h]  ('+velocity+'[m/s]) \n'
+                                  +'タイムトラベル量: '+diff+'[s]'+'\n'
+                                  +'__________________________________________________\n'
+                                  +'Time Travel Estimate: '+version+'    Error Code: '+ierr;
+}
+
+
+function cls(){
+  bflg = confirm("消去しますか?");
+  if(bflg){
+    document.f_in.reset();
+    document.f_out.reset();
+    document.f_in.f_distance.focus();
+  }
+}
+// -->
+</script>
+</head>
+<body onLoad="javascript:document.f_in.f_distance.focus();" bgcolor="#FFFFFF">
+<noscript>
+<center><font color="#ff0000">エラー：JavaScriptがOFFになっています。JavaScriptをONにしてから再読み込みをして下さい。</font></center><hr>
+</noscript>
+高速で移動すると少しだけ未来にタイムトラベルすることができます。<br/>
+より高速により長い時間移動するほど未来に行けます。<br/>
+【使い方】移動距離と移動時間を入力してから、<br/>
+「計算」を押すとタイムトラベル量を表示します。<br/>
+
+<hr/>
+
+<form action="javascript:calc();" name="f_in">
+
+移動距離(英数半角)
+<input type="tel" size="10" name="f_distance">km<br/>
+
+移動時間(英数半角)
+<input type="tel" size="10" name="f_hour">時間
+<input type="tel" size="10" name="f_min" onchange="javascript:calc();">分<br/>
+  <!-- <input type="tel" size="10" name="f_sec">秒 -->
+<input type="submit" value="計算"> <input type="button" onclick="cls();" value="消去"><br/>
+
+</form>
+
+<form name="f_out">
+
+<table border="0">
+<tr>
+  <td>あなたは出発時点から<input type="text" size="30" name="f_output">[s]だけ未来にいます。</td>
+</tr>
+</table>
+
+<hr/>
+
+実行ログ<br/>
+<textarea cols="70" rows="7" name="f_log"></textarea>
+
+</form>
+
+<pre><font color="#999999">
+【注意事項】
+1.特殊相対性理論に基づいてタイムトラベル量を算出しています。
+2.移動速度は1次元の平均速度で近似しています。
+3.光速を超えることはできません(計算結果はNaNになります)。
+4.公転・自転の変化や重力場による時間の遅れは考慮していません。
+5.出発時点よりも過去に行くことはできません。
+</font></pre>
+</body>
+</html>
